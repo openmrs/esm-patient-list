@@ -19,3 +19,14 @@ title {
     letter-spacing: normal;
     // color: var(--color-gray-100);
 }
+
+:global(.bx--skeleton):global(.bx--data-table-container) {
+    background-color: transparent;
+    padding: 0rem;
+    margin: 1rem;
+    overflow: hidden;
+
+    tr {
+        height: 3rem;
+    }
+}

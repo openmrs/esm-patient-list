@@ -4,19 +4,53 @@ import { getAllPatientLists } from './mock';
 import setup from './setupMockState';
 import { PatientListBase } from './types';
 
-const s = setup();
-// const fetchLists = (): Promise<Array<PatientListResponse>> =>
-//   fetch(`${window.openmrsBase}/ws/rest/v1/cohort`)
-//     .then(res => res.json())
-//     .then(({ results }) => results);
+const setupPromise = setup();
+
+interface LoadingState {
+  loading: true;
+  data: undefined;
+  error: undefined;
+}
+
+interface DataState {
+  loading: false;
+  data: Array<PatientListBase & { id: string }>;
+  error: undefined;
+}
+
+interface ErrorState {
+  loading: false;
+  data: undefined;
+  error: Error;
+}
+
+type State = LoadingState | DataState | ErrorState;
 
 export const usePatientListData = (redo: any, ...args: Parameters<typeof getAllPatientLists>) => {
-  const [data, setData] = React.useState<Array<PatientListBase & { id: string }>>([]);
+  const [data, setData] = React.useState<State>({
+    loading: true,
+    data: undefined,
+    error: undefined,
+  });
 
   React.useEffect(() => {
-    s.then(() => getAllPatientLists(...args)).then(y => {
-      setData(y.map(x => ({ ...x, id: x.uuid })));
-    });
+    setupPromise
+      .then(() => {
+        setData({
+          loading: true,
+          data: undefined,
+          error: undefined,
+        });
+        return getAllPatientLists(...args);
+      })
+      .then(y => {
+        setData({
+          loading: false,
+          data: y.map(x => ({ ...x, id: x.uuid })),
+          error: undefined,
+        });
+      })
+      .catch(err => setData({ loading: false, data: undefined, error: err }));
   }, [redo, ...args]);
 
   return data;

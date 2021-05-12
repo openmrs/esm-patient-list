@@ -73,7 +73,7 @@ const PatientListList: React.FC = () => {
     }
   })(tabState);
 
-  const patientData = usePatientListData(changed, ...patientFilter);
+  const { data: patientData, loading } = usePatientListData(changed, ...patientFilter);
 
   const customHeaders = React.useMemo(
     () => (tabState === TabTypes.SYSTEM || tabState === TabTypes.USER ? headersWithoutType : undefined),
@@ -182,7 +182,12 @@ const PatientListList: React.FC = () => {
         </Tabs>
       </div>
       <div style={{ gridRow: '3 / 4', gridColumn: '1 / 2', height: '100%' }}>
-        <PatientListTable headers={customHeaders} patientData={patientData} setListStarred={setListStarred} />
+        <PatientListTable
+          loading={loading}
+          headers={customHeaders}
+          patientData={patientData}
+          setListStarred={setListStarred}
+        />
       </div>
       {(() => {
         switch (viewState.type) {

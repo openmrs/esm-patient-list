@@ -25,7 +25,7 @@ export const exist = (...args: any[]): boolean => {
   return true;
 };
 
-const DELAY = 1;
+const DELAY = 300;
 
 type PatientUuid = string;
 type PatientListUuid = string;

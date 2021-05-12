@@ -9,7 +9,7 @@ const PatientListResults: React.FC<{
   enter: Object;
 }> = ({ nameFilter, setListStarred, style, enter }) => {
   const [filter, setFilter] = React.useState<string>();
-  const patientData = usePatientListData(undefined, undefined, undefined, filter);
+  const { data: data, loading } = usePatientListData(undefined, undefined, undefined, filter);
 
   React.useEffect(() => {
     setFilter(nameFilter);
@@ -18,10 +18,17 @@ const PatientListResults: React.FC<{
   return (
     <div style={{ ...style }}>
       <h3 style={{ padding: '1rem' }}>Search results</h3>
-      <p style={{ color: '#525252', borderBottom: 'solid 1px #e0e0e0', margin: '0rem 1rem', fontSize: '0.75rem' }}>
-        Found {patientData.length} lists
-      </p>
-      <PatientListTable patientData={patientData} setListStarred={setListStarred} style={{ paddingTop: '0.5rem' }} />
+      {data !== undefined && (
+        <p style={{ color: '#525252', borderBottom: 'solid 1px #e0e0e0', margin: '0rem 1rem', fontSize: '0.75rem' }}>
+          Found {data.length} lists
+        </p>
+      )}
+      <PatientListTable
+        loading={loading}
+        patientData={data}
+        setListStarred={setListStarred}
+        style={{ paddingTop: '0.5rem' }}
+      />
     </div>
   );
 };
