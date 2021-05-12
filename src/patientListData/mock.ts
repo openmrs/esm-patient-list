@@ -7,13 +7,24 @@ import {
   PatientListMemberFilter,
 } from './types';
 const sleep = time => new Promise<void>(res => setTimeout(() => res(), time));
-export const newUuid = () =>
-  Math.random()
-    .toString(36)
-    .split('.')[1] +
-  Math.random()
-    .toString(36)
-    .split('.')[1];
+export function newUuid() {
+  return (
+    Math.random()
+      .toString(36)
+      .split('.')[1] +
+    Math.random()
+      .toString(36)
+      .split('.')[1]
+  );
+}
+
+export const exist = (...args: any[]): boolean => {
+  for (const y of args) {
+    if (y === null || y === undefined) return false;
+  }
+  return true;
+};
+
 const DELAY = 1;
 
 type PatientUuid = string;
@@ -24,53 +35,59 @@ const patientLists = new Map<PatientListUuid, PatientListDetails>();
 const patientListMembers = new Map<string, Array<PatientListMember>>();
 
 // use async iterator for pagination?
-export const getAllPatientLists = (filter?: PATIENT_LIST_TYPE, stared?: boolean, nameFilter?: string) =>
-  sleep(DELAY).then(() => {
+export function getAllPatientLists(filter?: PATIENT_LIST_TYPE, stared?: boolean, nameFilter?: string) {
+  return sleep(DELAY).then(() => {
     const res: Array<PatientListBase> = [];
     for (const pl of patientLists.values()) {
-      if (filter ?? filter !== pl.type) continue;
-      if (stared ?? stared !== pl.isStared) continue;
-      if (nameFilter ?? !pl.display.startsWith(nameFilter)) continue;
+      if (exist(filter) && filter !== pl.type) continue;
+      if (exist(stared) && stared !== pl.isStarred) continue;
+      if (exist(nameFilter) && !pl.display.includes(nameFilter)) continue;
 
       res.push(pl);
     }
     return res;
   });
+}
 
 // might be directly part of getAllPatientLists, depends on how options are fetched
-export const getPatientListDetails = (listUuid: PatientListUuid) =>
-  sleep(DELAY).then(() => patientLists.get(listUuid)) as Promise<PatientListDetails>;
+export function getPatientListDetails(listUuid: PatientListUuid) {
+  return sleep(DELAY).then(() => patientLists.get(listUuid)) as Promise<PatientListDetails>;
+}
 
 // when adding a patient to new lists, we need to know which lists the patient is already on
-export const getAllPatientListsWithPatient = (
+export function getAllPatientListsWithPatient(
   patientUuid: PatientUuid,
   filter?: PATIENT_LIST_TYPE,
   stared?: boolean,
   nameFilter?: string,
-) =>
-  sleep(DELAY).then(() => {
+) {
+  return sleep(DELAY).then(() => {
     const res: Array<PatientListDetails> = [];
     for (const pl of patientLists.values()) {
-      if (filter ?? filter !== pl.type) continue;
-      if (stared ?? stared !== pl.isStared) continue;
-      if (nameFilter ?? !pl.display.startsWith(nameFilter)) continue;
+      if (exist(filter) && filter !== pl.type) continue;
+      if (exist(stared) && stared !== pl.isStarred) continue;
+      if (exist(nameFilter) && !pl.display.includes(nameFilter)) continue;
       if (!patientListMembers.get(pl.uuid).find(patient => patient.patientUuid === patientUuid)) continue;
 
       res.push(pl);
     }
+
+    console.log({ res });
+
     return res;
   });
+}
+export function getPatientListMembers(listUuid: PatientListUuid, filters?: Array<PatientListMemberFilter>) {
+  return sleep(DELAY).then(() => patientListMembers.get(listUuid)) as Promise<Array<PatientListMember>>;
+}
 
-export const getPatientListMembers = (listUuid: PatientListUuid, filters?: Array<PatientListMemberFilter>) =>
-  sleep(DELAY).then(() => patientListMembers.get(listUuid)) as Promise<Array<PatientListMember>>;
-
-export const createPatientList = (name: string, type? = PATIENT_LIST_TYPE.USER, options?: Array<PatientListOption>) =>
-  sleep(DELAY).then(() => {
+export function createPatientList(name: string, type = PATIENT_LIST_TYPE.USER, options?: Array<PatientListOption>) {
+  return sleep(DELAY).then(() => {
     const uuid = newUuid();
     patientLists.set(uuid, {
       display: name,
       description: '',
-      isStared: false,
+      isStarred: false,
       type,
       uuid,
       memberCount: 0,
@@ -81,12 +98,13 @@ export const createPatientList = (name: string, type? = PATIENT_LIST_TYPE.USER, 
 
     return uuid;
   });
+}
 
-export const updatePatientListDetails = (
+export function updatePatientListDetails(
   listUuid: PatientListUuid,
   details: Omit<Partial<PatientListDetails>, 'uuid'>,
-) =>
-  sleep(DELAY).then(() => {
+) {
+  return sleep(DELAY).then(() => {
     const patientList = patientLists.get(listUuid);
     if (!patientList) throw new Error('list does not exist');
 
@@ -95,15 +113,15 @@ export const updatePatientListDetails = (
       ...details,
     });
   });
-
-export const deletePatientList = (uuid: PatientListUuid) =>
-  sleep(DELAY).then(() => {
+}
+export function deletePatientList(uuid: PatientListUuid) {
+  return sleep(DELAY).then(() => {
     patientLists.delete(uuid);
     patientListMembers.delete(uuid);
   });
-
-export const addPatientToPatientList = (patientUuid: PatientUuid, listUuid: PatientListUuid) =>
-  sleep(DELAY).then(() => {
+}
+export function addPatientToPatientList(patientUuid: PatientUuid, listUuid: PatientListUuid) {
+  return sleep(DELAY).then(() => {
     const members = patientListMembers.get(listUuid);
     if (!members) throw new Error('list does not exist');
 
@@ -114,9 +132,10 @@ export const addPatientToPatientList = (patientUuid: PatientUuid, listUuid: Pati
 
     patientLists.get(listUuid).memberCount++;
   });
+}
 
-export const deletePatientFromPatientList = (patientUuid: PatientUuid, listUuid: PatientListUuid) =>
-  sleep(DELAY).then(() => {
+export function deletePatientFromPatientList(patientUuid: PatientUuid, listUuid: PatientListUuid) {
+  return sleep(DELAY).then(() => {
     const members = patientListMembers.get(listUuid);
 
     const toBeDeleted = members.findIndex(x => x.patientUuid === patientUuid);
@@ -126,3 +145,4 @@ export const deletePatientFromPatientList = (patientUuid: PatientUuid, listUuid:
       patientLists.get(listUuid).memberCount--;
     }
   });
+}

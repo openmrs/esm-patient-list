@@ -9,7 +9,7 @@ export interface PatientListBase {
   description: string;
   type: PATIENT_LIST_TYPE;
   memberCount: number;
-  isStared: boolean;
+  isStarred: boolean;
 }
 
 export interface PatientListDetails extends PatientListBase {
