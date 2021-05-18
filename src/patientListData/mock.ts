@@ -81,7 +81,12 @@ export function getPatientListMembers(listUuid: PatientListUuid, filters?: Array
   return sleep(DELAY).then(() => patientListMembers.get(listUuid)) as Promise<Array<PatientListMember>>;
 }
 
-export function createPatientList(name: string, type = PATIENT_LIST_TYPE.USER, options?: Array<PatientListOption>) {
+export function createPatientList(
+  name: string,
+  description: string,
+  type = PATIENT_LIST_TYPE.USER,
+  options?: Array<PatientListOption>,
+) {
   return sleep(DELAY).then(() => {
     const uuid = newUuid();
     patientLists.set(uuid, {

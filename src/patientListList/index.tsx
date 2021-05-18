@@ -9,6 +9,7 @@ import PatientListTable from './patientListTable';
 import PatientListResults from './PatientListResults';
 import { PATIENT_LIST_TYPE } from '../patientListData/types';
 import './style.scss';
+import CreateNewList from './CreateNewList';
 
 // setTimeout(() => {
 //   console.log({ style });
@@ -50,29 +51,30 @@ const headersWithoutType = [
   { key: 'isStarred', header: '' },
 ];
 
+const deducePatientFilter = (tabState: TabTypes): Parameters<typeof getAllPatientLists> => {
+  switch (tabState) {
+    case TabTypes.STARRED:
+      return [undefined, true, undefined];
+
+    case TabTypes.SYSTEM:
+      return [PATIENT_LIST_TYPE.SYSTEM, undefined, undefined];
+
+    case TabTypes.USER:
+      return [PATIENT_LIST_TYPE.USER, undefined, undefined];
+
+    case TabTypes.ALL:
+    default:
+      return [undefined, undefined, undefined];
+  }
+};
+
 const PatientListList: React.FC = () => {
   const [changed, setChanged] = React.useState(false);
-  const [tabState, setTabState] = React.useState(TabTypes.ALL);
+  const [openCreateNewList, setOpenCreateNewList] = React.useState(false);
+  const [tabState, setTabState] = React.useState(TabTypes.STARRED);
   const [viewState, setViewState] = React.useState<ViewState>({ type: StateTypes.IDLE });
   const ref = React.useRef<Search & { input: HTMLInputElement }>();
-
-  const patientFilter = ((tabState: TabTypes): Parameters<typeof getAllPatientLists> => {
-    switch (tabState) {
-      case TabTypes.STARRED:
-        return [undefined, true, undefined];
-
-      case TabTypes.SYSTEM:
-        return [PATIENT_LIST_TYPE.SYSTEM, undefined, undefined];
-
-      case TabTypes.USER:
-        return [PATIENT_LIST_TYPE.USER, undefined, undefined];
-
-      case TabTypes.ALL:
-      default:
-        return [undefined, undefined, undefined];
-    }
-  })(tabState);
-
+  const patientFilter = React.useMemo(() => deducePatientFilter(tabState), [tabState]);
   const { data: patientData, loading } = usePatientListData(changed, ...patientFilter);
 
   const customHeaders = React.useMemo(
@@ -83,6 +85,8 @@ const PatientListList: React.FC = () => {
   const setListStarred = React.useCallback((listUuid: string, star: boolean) => {
     updatePatientListDetails(listUuid, { isStarred: star }).then(() => setChanged(c => !c));
   }, []);
+
+  // return <CreateNewList />;
 
   return (
     <div
@@ -162,7 +166,7 @@ const PatientListList: React.FC = () => {
           style={{ width: 'fit-content', justifySelf: 'end', alignSelf: 'center' }}
           kind="ghost"
           renderIcon={Add16}
-          onClick={() => {}}>
+          onClick={() => setOpenCreateNewList(true)}>
           New List
         </Button>
         <Tabs
@@ -216,6 +220,9 @@ const PatientListList: React.FC = () => {
             return null;
         }
       })()}
+      {openCreateNewList && (
+        <CreateNewList close={() => setOpenCreateNewList(false)} finished={() => setChanged(c => !c)} />
+      )}
     </div>
   );
 };
